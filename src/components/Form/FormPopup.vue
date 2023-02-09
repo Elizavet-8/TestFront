@@ -1,5 +1,5 @@
 <template>
-  <AppPopup v-if="$store.state.isPopupVisible">
+  <AppPopup v-if="$store.state.isPopupVisible" @action="$store.commit('showPopup')">
     <template v-slot:popup__title>
       Заказать звонок
     </template>
@@ -27,7 +27,6 @@
                    type="tel"
                    v-mask="'+7 (###) ###-##-##'"
             />
-            <div @click="phoneValid">gghth</div>
           </template>
         </FormGroup>
         <FormGroup
@@ -59,7 +58,8 @@
       </form>
     </template>
   </AppPopup>
-  <FormResult v-if="$store.state.isPopupResultVisible"></FormResult>
+  <FormResult></FormResult>
+  <AppError :error="errorForm"></AppError>
 </template>
 
 <script>
@@ -67,6 +67,7 @@ import axios from 'axios';
 import AppPopup from "@/components/AppPopup";
 import AppButton from "@/components/AppButton";
 import FormResult from "@/components/Form/FormResult";
+import AppError from "@/components/AppError";
 import FormGroup from "@/components/Form/FormGroup";
 import {mask} from 'vue-the-mask';
 
@@ -80,9 +81,11 @@ export default {
     FormGroup,
     AppPopup,
     FormResult,
+    AppError,
   },
   data() {
     return {
+      errorForm: '',
       city_ids: [
         {
           id: 1,
@@ -106,62 +109,44 @@ export default {
     }
   },
   methods: {
-    phoneValid() {
-      let str = this.$store.state.phone;
-
-      let plus_group = str.slice(0,2);
-      let code_group = str.slice(2,5);
-      let first_group = str.slice(5,8);
-      let second_group = str.slice(8,10);
-      let third_group = str.slice(10,12);
-
-      let correct_phone = plus_group + '(' + code_group + ')' + first_group + '-' + second_group + '-' + third_group;
-
-      console.log(correct_phone);
-    },
     createOrder() {
       if (!this.$store.state.name) {
         this.errors.name = 'Обязательно поле';
       } else {
         this.errors.name = null;
       }
-      // if (!this.$store.state.phone) {
-      //   this.errors.phone = 'Обязательно поле'
-      // } else if (!this.validPhone(this.$store.state.phone)) {
-      //   this.errors.phone = 'Укажите корректный номер'
-      // }
-      // if (!this.$store.state.email) {
-      //   this.errors.email = 'Обязательно поле'
-      // } else if (!this.validEmail(this.$store.state.email)) {
-      //   this.errors.phone = 'Укажите корректный адрес электронной почты.'
-      // }
-      // if (!this.$store.state.city_id) {
-      //   this.errors.city_id = 'Обязательно поле'
-      // }
-      // if (!this.$store.state.phone) {
-      //   this.errors.push('Обязательно поле');
-      // } else if (!this.validPhone(this.$store.state.phone)) {
-      //   this.errors.push('Укажите корректный номер.');
-      // }
-      // if (!this.$store.state.email) {
-      //   this.errors.push('Обязательно поле');
-      // } else if (!this.validEmail(this.$store.state.email)) {
-      //   this.errors.push('Укажите корректный адрес электронной почты.');
-      // }
-      // if (!this.$store.state.city_id) {
-      //   this.errors.push('Обязательно поле');
-      // }
+      if (!this.$store.state.phone) {
+        this.errors.phone = 'Обязательно поле'
+      } else if (!this.validPhone(this.$store.state.phone)) {
+        this.errors.phone = 'Укажите корректный номер'
+      }
+      if (!this.$store.state.email) {
+        this.errors.email = 'Обязательно поле'
+      } else if (!this.validEmail(this.$store.state.email)) {
+        this.errors.phone = 'Укажите корректный адрес электронной почты.'
+      }
+      if (!this.$store.state.city_id) {
+        this.errors.city_id = 'Обязательно поле'
+      }
+      if (!this.$store.state.phone) {
+        this.errors.push('Обязательно поле');
+      } else if (!this.validPhone(this.$store.state.phone)) {
+        this.errors.push('Укажите корректный номер.');
+      }
+      if (!this.$store.state.email) {
+        this.errors.push('Обязательно поле');
+      } else if (!this.validEmail(this.$store.state.email)) {
+        this.errors.push('Укажите корректный адрес электронной почты.');
+      }
+      if (!this.$store.state.city_id) {
+        this.errors.push('Обязательно поле');
+      }
 
-      if (!this.errors.name) {
-        // this.$store.commit('showPopupResult')
-
-        // this.$store.state.isPopupVisible = false;
-        // this.$store.state.isPopupResultVisible = true;
-
+      if (!this.errors.name && !this.$store.state.email && !this.$store.state.city_id && !this.$store.state.phone) {
         axios.post('http://hh.autodrive-agency.ru/test-tasks/front/task-7/',
             {
               name: this.$store.state.name,
-              phone: this.$store.state.phone,
+              phone: '+' + this.$store.state.phone.replace(/\D/g, ""),
               email: this.$store.state.email,
               city_id: this.$store.state.city_id,
             },
@@ -173,12 +158,12 @@ export default {
             })
             .then((response) => {
               console.log(response)
-              this.$store.state.name = null
-              this.$store.state.phone = null
-              this.$store.state.email = null
-              this.$store.state.city_id = null
+              this.$store.commit('showPopupResult')
             })
-            .catch(error => console.log(error));
+            .catch(error => {
+              this.errorForm = error;
+              this.$store.commit('showPopupError')
+            });
       }
     },
     validEmail: function (email) {
@@ -218,25 +203,6 @@ export default {
     border border-white-100 border-solid
     placeholder:font-normal placeholder:text-[1.6rem] placeholder:leading-[2rem] placeholder:text-gray-200
     focus:font-normal focus:text-[1.6rem] focus:leading-[2rem] focus:text-gray-200;
-  }
-}
-
-
-.vs {
-  &__dropdown-toggle {
-    @apply text-[1.6rem] font-medium leading-[2rem] text-gray-200 w-full
-    flex items-center justify-center
-    py-[.9rem] px-[1.3rem]
-    h-[3.8rem] rounded-[.6rem]
-    bg-white-100
-    shadow-[0_1px_2px_1px_rgba(0,0,0,0.05)]
-    border border-white-100 border-solid
-    placeholder:font-normal placeholder:text-[1.6rem] placeholder:leading-[2rem] placeholder:text-gray-200
-    focus:font-normal focus:text-[1.6rem] focus:leading-[2rem] focus:text-gray-200;
-  }
-
-  &__clear {
-    @apply hidden;
   }
 }
 

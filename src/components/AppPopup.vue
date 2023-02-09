@@ -6,7 +6,7 @@
       </h2>
       <slot name="popup__body"></slot>
     </div>
-    <div class="popup__overflow" @click="$store.commit('showPopup')"></div>
+    <div class="popup__overflow" @click="$emit('action')"></div>
   </div>
 </template>
 
@@ -15,10 +15,11 @@
 
 export default {
   name: "AppPopup",
+  emits: ['action'],
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .popup {
   @apply fixed inset-0
   w-full h-full

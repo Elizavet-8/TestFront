@@ -1,5 +1,5 @@
 <template>
-  <AppPopup>
+  <AppPopup v-if="$store.state.isPopupResultVisible" @action="$store.commit('closePopupResult')">
     <template v-slot:popup__title>
       Ваши данные
     </template>
@@ -13,8 +13,13 @@
 </template>
 
 <script>
+import AppPopup from "@/components/AppPopup";
+
 export default {
-  name: "FormResult"
+  name: "FormResult",
+  components: {
+    AppPopup
+  }
 }
 </script>
 

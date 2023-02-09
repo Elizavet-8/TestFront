@@ -3,8 +3,9 @@ import {createStore} from 'vuex'
 export default createStore({
     state() {
         return {
-            isPopupVisible: true,
+            isPopupVisible: false,
             isPopupResultVisible: false,
+            isPopupErrorVisible: false,
             name: null,
             phone: null,
             email: null,
@@ -22,6 +23,16 @@ export default createStore({
         showPopupResult: function (state) {
             state.isPopupVisible = false;
             state.isPopupResultVisible = true;
+        },
+        closePopupResult: function (state) {
+            state.isPopupResultVisible = false;
+            state.city_id = null;
+            state.name = null;
+            state.phone = null;
+            state.email = null;
+        },
+        showPopupError: function (state) {
+            state.isPopupErrorVisible = !state.isPopupErrorVisible;
         },
     },
 
